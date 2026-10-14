@@ -749,7 +749,7 @@ const results = realResults.length > 0 ? realResults.map(r => ({
   confidence: 2,
   outreach_angle: '',
   contact_status: 'Not contacted',
-  evidenceType: 'search_result',
+  evidenceType: r.snippet && (r.snippet.toLowerCase().includes('guest post') || r.snippet.toLowerCase().includes('link building') || r.snippet.toLowerCase().includes('write for us')) ? 'explicit_demand' : r.snippet && r.snippet.toLowerCase().includes('seo') ? 'service_page' : 'directory',
   source_query: queries[i],
   _simulated: false
 })) : generateMockClientResults(queries[i], niche);
