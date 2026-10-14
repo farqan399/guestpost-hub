@@ -729,33 +729,7 @@ async function runClientSearch() {
     if(el) el.style.width = Math.round((i+1)/queries.length*100)+'%';
     await new Promise(r=>setTimeout(r, 200)); // simulate delay
     const realResults = await fetchRealResults(queries[i]);
-const results = realResults.length > 0 ? realResults.map(r => ({
-  id: uid(),
-  company_name: r.title.split('-')[0].split('|')[0].trim(),
-  url: r.url,
-  domain: normalizeDomain(r.url),
-  contact_page: '',
-  email: '',
-  niche: niche,
-  location_evidence: '',
-  service_page: '',
-  job_listing: '',
-  evidence_url: r.url,
-  evidence_excerpt: r.snippet,
-  evidence_date: '',
-  discovery_date: new Date().toISOString(),
-  last_checked: new Date().toISOString(),
-  score: 0,
-  confidence: 2,
-  outreach_angle: '',
-  contact_status: 'Not contacted',
-  evidenceType: r.snippet && (r.snippet.toLowerCase().includes('guest post') || r.snippet.toLowerCase().includes('link building') || r.snippet.toLowerCase().includes('write for us')) ? 'explicit_demand' : r.snippet && r.snippet.toLowerCase().includes('seo') ? 'service_page' : 'directory',
-  source_query: queries[i],
-  _simulated: false
-})) : generateMockClientResults(queries[i], niche);
-    for(const r of results) {
-      if(!hasDuplicate(state.clients, r.url, r.id)) {
-        r.score = scoreClient(r);
+
         state.clients.push(r);
       }
     }
@@ -796,7 +770,33 @@ function renderWebsites() {
             ${niches.map(x=>`<option${x===n.niche?' selected':''}>${x}</option>`).join('')}
           </select>
         </div>
-        <div class="field">
+        <div class="field">const results = realResults.length > 0 ? realResults.map(r => ({
+  id: uid(),
+  company_name: r.title.split('-')[0].split('|')[0].trim(),
+  url: r.url,
+  domain: normalizeDomain(r.url),
+  contact_page: '',
+  email: '',
+  niche: niche,
+  location_evidence: '',
+  service_page: '',
+  job_listing: '',
+  evidence_url: r.url,
+  evidence_excerpt: r.snippet,
+  evidence_date: '',
+  discovery_date: new Date().toISOString(),
+  last_checked: new Date().toISOString(),
+  score: 0,
+  confidence: 2,
+  outreach_angle: '',
+  contact_status: 'Not contacted',
+  evidenceType: r.snippet && (r.snippet.toLowerCase().includes('guest post') || r.snippet.toLowerCase().includes('link building') || r.snippet.toLowerCase().includes('write for us')) ? 'explicit_demand' : r.snippet && r.snippet.toLowerCase().includes('seo') ? 'service_page' : 'directory',
+  source_query: queries[i],
+  _simulated: false
+})) : generateMockClientResults(queries[i], niche);
+    for(const r of results) {
+      if(!hasDuplicate(state.clients, r.url, r.id)) {
+        r.score = scoreClient(r);
           <label>Additional Keywords</label>
           <input id="gp-keywords" placeholder="e.g. SaaS, startup, entrepreneur" value="${n.keywords}" onchange="gpSearchState.keywords=this.value">
         </div>
@@ -912,7 +912,14 @@ async function runGPSearch() {
     if(el) el.style.width = Math.round((i+1)/queries.length*100)+'%';
     await new Promise(r=>setTimeout(r, 150));
     const realResults = await fetchRealResults(queries[i]);
-const results = realResults.length > 0 ? realResults.map(r => ({
+const blockedDomains = ['youtube.com','x.com','twitter.com','upwork.com','reddit.com','quora.com','facebook.com','instagram.com','linkedin.com','pinterest.com','amazon.com','wikipedia.org','forbes.com','medium.com','blogger.com','wordpress.com'];
+
+const filteredResults = realResults.filter(r => {
+  const domain = normalizeDomain(r.url);
+  return !blockedDomains.some(b => domain.includes(b));
+});
+
+const results = filteredResults.length > 0 ? filteredResults.map(r => ({
   id: uid(),
   name: r.title.split('-')[0].split('|')[0].trim(),
   url: r.url,
@@ -920,7 +927,7 @@ const results = realResults.length > 0 ? realResults.map(r => ({
   niche: niche,
   language: 'English',
   location_evidence: '',
-  gp_status: 4,
+  gp_status: r.snippet && (r.snippet.toLowerCase().includes('write for us') || r.snippet.toLowerCase().includes('guest post') || r.snippet.toLowerCase().includes('submit') || r.snippet.toLowerCase().includes('contributor')) ? 1 : 4,
   gp_evidence: r.snippet,
   guidelines_url: '',
   submission_url: '',
