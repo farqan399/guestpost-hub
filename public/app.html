@@ -393,6 +393,22 @@ function scoreWebsite(w) {
 }
 
 // ─── Simulated Search (no live API) ──────────────────────────────────────────
+async function fetchRealResults(query) {
+  try {
+    const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+    const data = await res.json();
+    if (data.error) return [];
+    return (data.organic_results || []).map(r => ({
+      title: r.title || '',
+      url: r.link || '',
+      snippet: r.snippet || '',
+      source: 'SerpAPI',
+      timestamp: new Date().toISOString()
+    }));
+  } catch(e) {
+    return [];
+  }
+}
 function generateMockClientResults(query, niche) {
   const companies = [
     {name:'BrightEdge Agency',domain:'brightedge-agency.com',service:'SEO & Link Building',loc:'New York, NY'},
@@ -712,7 +728,31 @@ async function runClientSearch() {
     const el = document.getElementById('cl-progress');
     if(el) el.style.width = Math.round((i+1)/queries.length*100)+'%';
     await new Promise(r=>setTimeout(r, 200)); // simulate delay
-    const results = generateMockClientResults(queries[i], niche);
+    const realResults = await fetchRealResults(queries[i]);
+const results = realResults.length > 0 ? realResults.map(r => ({
+  id: uid(),
+  company_name: r.title.split('-')[0].split('|')[0].trim(),
+  url: r.url,
+  domain: normalizeDomain(r.url),
+  contact_page: '',
+  email: '',
+  niche: niche,
+  location_evidence: '',
+  service_page: '',
+  job_listing: '',
+  evidence_url: r.url,
+  evidence_excerpt: r.snippet,
+  evidence_date: '',
+  discovery_date: new Date().toISOString(),
+  last_checked: new Date().toISOString(),
+  score: 0,
+  confidence: 2,
+  outreach_angle: '',
+  contact_status: 'Not contacted',
+  evidenceType: 'search_result',
+  source_query: queries[i],
+  _simulated: false
+})) : generateMockClientResults(queries[i], niche);
     for(const r of results) {
       if(!hasDuplicate(state.clients, r.url, r.id)) {
         r.score = scoreClient(r);
@@ -871,7 +911,33 @@ async function runGPSearch() {
     const el = document.getElementById('gp-progress');
     if(el) el.style.width = Math.round((i+1)/queries.length*100)+'%';
     await new Promise(r=>setTimeout(r, 150));
-    const results = generateMockWebsiteResults(queries[i], niche);
+    const realResults = await fetchRealResults(queries[i]);
+const results = realResults.length > 0 ? realResults.map(r => ({
+  id: uid(),
+  name: r.title.split('-')[0].split('|')[0].trim(),
+  url: r.url,
+  domain: normalizeDomain(r.url),
+  niche: niche,
+  language: 'English',
+  location_evidence: '',
+  gp_status: 4,
+  gp_evidence: r.snippet,
+  guidelines_url: '',
+  submission_url: '',
+  contact_info: '',
+  editorial_policy: '',
+  sponsored_info: '',
+  evidence_excerpt: r.snippet,
+  source_url: r.url,
+  last_verified: new Date().toISOString(),
+  da: null, dr: null, traffic: null,
+  referring_domains: null, backlinks: null, spam_score: null,
+  data_provider: 'SerpAPI',
+  data_date: new Date().toISOString(),
+  score: 0,
+  source_query: queries[i],
+  _simulated: false
+})) : generateMockWebsiteResults(queries[i], niche);
     for(const r of results) {
       if(!hasDuplicate(state.websites, r.url, r.id)) state.websites.push(r);
     }
