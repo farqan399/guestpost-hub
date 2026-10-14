@@ -912,78 +912,32 @@ async function runGPSearch() {
     if(el) el.style.width = Math.round((i+1)/queries.length*100)+'%';
     await new Promise(r=>setTimeout(r, 150));
     const realResults = await fetchRealResults(queries[i]);
-
-const blockedDomains = [
-  'youtube.com',
-  'x.com',
-  'twitter.com',
-  'upwork.com',
-  'reddit.com',
-  'quora.com',
-  'facebook.com',
-  'instagram.com',
-  'linkedin.com',
-  'pinterest.com',
-  'amazon.com',
-  'wikipedia.org',
-  'forbes.com',
-  'medium.com'
-];
-
-const filteredResults = realResults.filter(r => {
-  try {
-    const hostname = new URL(r.url).hostname
-      .toLowerCase()
-      .replace(/^www\./, '');
-
-    return !blockedDomains.some(
-      blocked => hostname === blocked ||
-        hostname.endsWith('.' + blocked)
-    );
-  } catch {
-    return false;
-  }
-});
-
-const results = filteredResults.map(r => {
-  const snippet = (r.snippet || '').toLowerCase();
-
-  const hasGuestPostEvidence =
-    /write for us|guest post|guest posting|submit a guest|guest article|contributor guidelines|become a contributor/.test(snippet);
-
-  return {
-    id: uid(),
-    name: (r.title || '').split('-')[0].split('|')[0].trim(),
-    url: r.url,
-    domain: new URL(r.url).hostname
-      .toLowerCase()
-      .replace(/^www\./, ''),
-    niche,
-    language: 'English',
-    location_evidence: '',
-    gp_status: hasGuestPostEvidence ? 1 : 4,
-    gp_evidence: r.snippet || '',
-    guidelines_url: '',
-    submission_url: '',
-    contact_info: '',
-    editorial_policy: '',
-    sponsored_info: '',
-    evidence_excerpt: r.snippet || '',
-    source_url: r.url,
-    last_verified: new Date().toISOString(),
-    da: null,
-    dr: null,
-    traffic: null,
-    referring_domains: null,
-    backlinks: null,
-    spam_score: null,
-    data_provider: 'SerpAPI',
-    data_date: new Date().toISOString(),
-    score: 0,
-    source_query: queries[i],
-    _simulated: false
-  };
-});
+const results = realResults.length > 0 ? realResults.map(r => ({
+  id: uid(),
+  name: r.title.split('-')[0].split('|')[0].trim(),
+  url: r.url,
+  domain: normalizeDomain(r.url),
+  niche: niche,
+  language: 'English',
+  location_evidence: '',
+  gp_status: 4,
+  gp_evidence: r.snippet,
+  guidelines_url: '',
+  submission_url: '',
+  contact_info: '',
+  editorial_policy: '',
+  sponsored_info: '',
+  evidence_excerpt: r.snippet,
+  source_url: r.url,
+  last_verified: new Date().toISOString(),
+  da: null, dr: null, traffic: null,
+  referring_domains: null, backlinks: null, spam_score: null,
+  data_provider: 'SerpAPI',
+  data_date: new Date().toISOString(),
+  score: 0,
+  source_query: queries[i],
+  _simulated: false
+})) : generateMockWebsiteResults(queries[i], niche);
     for(const r of results) {
       if(!hasDuplicate(state.websites, r.url, r.id)) state.websites.push(r);
     }
