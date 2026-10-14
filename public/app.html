@@ -733,11 +733,10 @@ async function runClientSearch() {
         state.clients.push(r);
       }
     }
-  }
+  
   clientSearchState.running = false;
   save();
   render();
-}
 
 function clearClientResults() {
   if(confirm('Clear all client leads?')) { state.clients=[]; save(); render(); }
@@ -753,7 +752,6 @@ function editClient(id) {
   if(status!==null) {c.contact_status=status;}
   save(); render();
 }
-
 // WEBSITE FINDER
 let gpSearchState = {running:false, progress:0, queries:[], niche:'SEO', keywords:''};
 
