@@ -66,8 +66,82 @@ a:hover{text-decoration:underline}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
 .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
-@media(max-width:900px){.grid4{grid-template-columns:1fr 1fr}.grid3{grid-template-columns:1fr 1fr}.sidebar{width:52px}.sidebar .logo-text,.sidebar .logo-sub,.sidebar .nav-section,.sidebar .nav-item span,.sidebar-footer p{display:none}.nav-item{justify-content:center;padding:12px}.sidebar-footer{padding:8px 0;display:flex;justify-content:center}}
-@media(max-width:600px){.grid2,.grid3,.grid4{grid-template-columns:1fr}.content{padding:16px}}
+/* ── Mobile Navigation ── */
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:8px;background:none;border:none;z-index:200}
+.hamburger span{display:block;width:24px;height:2px;background:var(--text);border-radius:2px;transition:all .3s}
+.hamburger.open span:nth-child(1){transform:rotate(45deg) translate(5px,5px)}
+.hamburger.open span:nth-child(2){opacity:0}
+.hamburger.open span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px)}
+.mobile-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:98}
+.mobile-overlay.active{display:block}
+
+@media(max-width:900px){
+  .grid4{grid-template-columns:1fr 1fr}
+  .grid3{grid-template-columns:1fr 1fr}
+  .sidebar{width:52px}
+  .sidebar .logo-text,.sidebar .logo-sub,.sidebar .nav-section,.sidebar .nav-item span,.sidebar-footer p{display:none}
+  .nav-item{justify-content:center;padding:12px}
+  .sidebar-footer{padding:8px 0;display:flex;justify-content:center}
+}
+
+@media(max-width:768px){
+  .hamburger{display:flex}
+  .app{position:relative}
+  .sidebar{
+    position:fixed;top:0;left:-280px;height:100vh;width:260px!important;
+    z-index:99;transition:left .3s ease;box-shadow:4px 0 20px rgba(0,0,0,.3)
+  }
+  .sidebar.mobile-open{left:0}
+  .sidebar .logo-text,.sidebar .logo-sub,.sidebar .nav-section,.sidebar .nav-item span,.sidebar-footer p{display:block!important}
+  .nav-item{justify-content:flex-start!important;padding:10px 16px!important}
+  .sidebar-footer{padding:12px 16px!important;display:block!important}
+  .main{width:100%;min-width:0}
+  .topbar{padding:10px 16px;gap:8px}
+  .page-title{font-size:15px}
+  .page-sub{font-size:11px}
+  .content{padding:12px}
+  .grid2,.grid3,.grid4{grid-template-columns:1fr}
+  .two-col{grid-template-columns:1fr}
+  .btn-group{flex-wrap:wrap}
+  .btn-group button{flex:1;min-width:120px}
+  .section-header{flex-direction:column;align-items:flex-start;gap:8px}
+  .section-header .flex{flex-wrap:wrap;width:100%}
+  .section-header .flex input{flex:1;min-width:0}
+  .tab-bar{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .tab-bar::-webkit-scrollbar{display:none}
+  .stat-num{font-size:22px}
+  button{min-height:44px}
+  input,select,textarea{min-height:44px;font-size:16px!important}
+  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--radius)}
+  table{min-width:600px;font-size:12px}
+  th,td{padding:8px 10px}
+  .url-cell,.truncate{max-width:120px}
+  .quality-circle{width:36px;height:36px;font-size:11px}
+  .score-bar{width:60px}
+  .badge{font-size:10px;padding:2px 6px}
+  .alert{font-size:12px;padding:10px 12px}
+  .card{padding:12px}
+  .stat-card{padding:12px 14px}
+  pre{font-size:10px;overflow-x:auto}
+  .modal-inner{margin:16px!important;padding:16px!important}
+}
+
+@media(max-width:480px){
+  .grid4{grid-template-columns:1fr 1fr}
+  .page-title{font-size:14px}
+  .topbar{flex-wrap:wrap}
+  table{min-width:500px;font-size:11px}
+  th,td{padding:6px 8px}
+  .stat-num{font-size:20px}
+  .btn-sm{min-height:36px;padding:6px 10px}
+}
+
+@media(max-width:320px){
+  .content{padding:8px}
+  .card{padding:10px}
+  .grid4{grid-template-columns:1fr}
+  table{min-width:400px}
+}
 
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
 .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px}
@@ -153,6 +227,7 @@ textarea{resize:vertical;min-height:80px}
 </head>
 <body>
 <div class="app" id="app">
+  <div class="mobile-overlay" id="mobile-overlay" onclick="toggleSidebar()"></div>
   <div class="sidebar" id="sidebar">
     <div class="logo">
       <div class="logo-text">🔍 GuestPost<br>Research Hub</div>
@@ -168,6 +243,9 @@ textarea{resize:vertical;min-height:80px}
   </div>
   <div class="main">
     <div class="topbar">
+      <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
+  <span></span><span></span><span></span>
+</button>
       <div>
         <div class="page-title" id="page-title">Dashboard</div>
         <div class="page-sub" id="page-sub">Overview of your research activity</div>
@@ -1780,6 +1858,28 @@ function render() {
 // Init
 buildNav();
 render();
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('mobile-overlay');
+  const hamburger = document.getElementById('hamburger');
+  sidebar.classList.toggle('mobile-open');
+  overlay.classList.toggle('active');
+  hamburger.classList.toggle('open');
+}
+
+// Close sidebar when navigating on mobile
+const origNavigate = navigate;
+window.navigate = function(id) {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('mobile-overlay');
+  const hamburger = document.getElementById('hamburger');
+  if(window.innerWidth <= 768) {
+    sidebar.classList.remove('mobile-open');
+    overlay.classList.remove('active');
+    hamburger.classList.remove('open');
+  }
+  origNavigate(id);
+}
 </script>
 </body>
 </html>
